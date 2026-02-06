@@ -2,6 +2,13 @@ import type { Viewport } from '../types';
 import type { EvalFunction } from 'mathjs';
 import { safeEvaluate } from './mathEval';
 
+export interface CanvasTheme {
+  bg: string;
+  grid: string;
+  axis: string;
+  label: string;
+}
+
 // Convert math coordinates to screen (canvas pixel) coordinates
 function mathToScreen(
   mathX: number,
@@ -29,9 +36,9 @@ function drawGrid(
   ctx: CanvasRenderingContext2D,
   viewport: Viewport,
   width: number,
-  height: number
+  height: number,
+  theme: CanvasTheme
 ) {
-  // Target ~80px between grid lines
   const targetPixelSpacing = 80;
   const mathSpacing = niceStep(targetPixelSpacing / viewport.scale);
 
@@ -40,11 +47,10 @@ function drawGrid(
   const top = viewport.centerY + height / 2 / viewport.scale;
   const bottom = viewport.centerY - height / 2 / viewport.scale;
 
-  ctx.strokeStyle = '#e0e0e0';
+  ctx.strokeStyle = theme.grid;
   ctx.lineWidth = 1;
   ctx.beginPath();
 
-  // Vertical grid lines
   const startX = Math.floor(left / mathSpacing) * mathSpacing;
   for (let mx = startX; mx <= right; mx += mathSpacing) {
     const [sx] = mathToScreen(mx, 0, viewport, width, height);
@@ -52,7 +58,6 @@ function drawGrid(
     ctx.lineTo(Math.round(sx) + 0.5, height);
   }
 
-  // Horizontal grid lines
   const startY = Math.floor(bottom / mathSpacing) * mathSpacing;
   for (let my = startY; my <= top; my += mathSpacing) {
     const [, sy] = mathToScreen(0, my, viewport, width, height);
@@ -67,25 +72,23 @@ function drawAxes(
   ctx: CanvasRenderingContext2D,
   viewport: Viewport,
   width: number,
-  height: number
+  height: number,
+  theme: CanvasTheme
 ) {
   const targetPixelSpacing = 80;
   const mathSpacing = niceStep(targetPixelSpacing / viewport.scale);
 
   const [originX, originY] = mathToScreen(0, 0, viewport, width, height);
 
-  // Axis lines
-  ctx.strokeStyle = '#333';
+  ctx.strokeStyle = theme.axis;
   ctx.lineWidth = 2;
   ctx.beginPath();
 
-  // X axis
   if (originY >= 0 && originY <= height) {
     ctx.moveTo(0, Math.round(originY) + 0.5);
     ctx.lineTo(width, Math.round(originY) + 0.5);
   }
 
-  // Y axis
   if (originX >= 0 && originX <= width) {
     ctx.moveTo(Math.round(originX) + 0.5, 0);
     ctx.lineTo(Math.round(originX) + 0.5, height);
@@ -93,8 +96,7 @@ function drawAxes(
 
   ctx.stroke();
 
-  // Tick marks and labels
-  ctx.fillStyle = '#555';
+  ctx.fillStyle = theme.label;
   ctx.font = '11px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
@@ -106,15 +108,14 @@ function drawAxes(
 
   const tickSize = 5;
 
-  // X-axis ticks
   const startX = Math.floor(left / mathSpacing) * mathSpacing;
   for (let mx = startX; mx <= right; mx += mathSpacing) {
-    if (Math.abs(mx) < mathSpacing * 0.01) continue; // skip origin
+    if (Math.abs(mx) < mathSpacing * 0.01) continue;
     const [sx] = mathToScreen(mx, 0, viewport, width, height);
     const ty = Math.max(0, Math.min(height - 20, originY));
 
     ctx.beginPath();
-    ctx.strokeStyle = '#333';
+    ctx.strokeStyle = theme.axis;
     ctx.lineWidth = 1;
     ctx.moveTo(Math.round(sx) + 0.5, ty - tickSize);
     ctx.lineTo(Math.round(sx) + 0.5, ty + tickSize);
@@ -124,17 +125,16 @@ function drawAxes(
     ctx.fillText(label, sx, ty + tickSize + 2);
   }
 
-  // Y-axis ticks
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
   const startY = Math.floor(bottom / mathSpacing) * mathSpacing;
   for (let my = startY; my <= top_; my += mathSpacing) {
-    if (Math.abs(my) < mathSpacing * 0.01) continue; // skip origin
+    if (Math.abs(my) < mathSpacing * 0.01) continue;
     const [, sy] = mathToScreen(0, my, viewport, width, height);
     const tx = Math.max(30, Math.min(width, originX));
 
     ctx.beginPath();
-    ctx.strokeStyle = '#333';
+    ctx.strokeStyle = theme.axis;
     ctx.lineWidth = 1;
     ctx.moveTo(tx - tickSize, Math.round(sy) + 0.5);
     ctx.lineTo(tx + tickSize, Math.round(sy) + 0.5);
@@ -149,7 +149,6 @@ function formatLabel(value: number): string {
   if (Math.abs(value) >= 1e6 || (Math.abs(value) < 0.01 && value !== 0)) {
     return value.toExponential(1);
   }
-  // Remove trailing zeros
   return parseFloat(value.toPrecision(10)).toString();
 }
 
@@ -169,7 +168,6 @@ function drawFunction(
   let lastY = 0;
 
   for (let px = 0; px < width; px++) {
-    // Convert pixel x to math x
     const mathX = viewport.centerX + (px - width / 2) / viewport.scale;
     const mathY = safeEvaluate(fn, mathX);
 
@@ -180,7 +178,6 @@ function drawFunction(
 
     const [, screenY] = mathToScreen(mathX, mathY, viewport, width, height);
 
-    // Lift pen if the line would jump wildly (discontinuity detection)
     if (penDown && Math.abs(screenY - lastY) > height) {
       penDown = false;
     }
@@ -210,18 +207,16 @@ export function renderGraph(
   functions: CompiledFunction[],
   viewport: Viewport,
   width: number,
-  height: number
+  height: number,
+  theme: CanvasTheme
 ) {
-  // Clear
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = theme.bg;
   ctx.fillRect(0, 0, width, height);
 
-  // Draw layers
-  drawGrid(ctx, viewport, width, height);
-  drawAxes(ctx, viewport, width, height);
+  drawGrid(ctx, viewport, width, height, theme);
+  drawAxes(ctx, viewport, width, height, theme);
 
-  // Draw each visible function
   for (const f of functions) {
     if (f.visible) {
       drawFunction(ctx, f.fn, f.color, viewport, width, height);

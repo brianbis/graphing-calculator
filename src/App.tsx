@@ -7,8 +7,8 @@ import Sidebar from './components/Sidebar';
 import './App.css';
 
 const PALETTE = [
-  '#e53935', '#1e88e5', '#43a047', '#fb8c00',
-  '#8e24aa', '#00acc1', '#6d4c41', '#546e7a',
+  '#e94560', '#4cc9f0', '#43a047', '#fb8c00',
+  '#a855f7', '#06d6a0', '#f472b6', '#38bdf8',
 ];
 
 let nextId = 1;
@@ -16,6 +16,8 @@ let nextId = 1;
 function makeId() {
   return String(nextId++);
 }
+
+const firstId = makeId();
 
 const DEFAULT_VIEWPORT: Viewport = {
   centerX: 0,
@@ -26,7 +28,7 @@ const DEFAULT_VIEWPORT: Viewport = {
 function App() {
   const [functions, setFunctions] = useState<PlottedFunction[]>([
     {
-      id: makeId(),
+      id: firstId,
       expression: 'x^2',
       color: PALETTE[0],
       visible: true,
@@ -34,8 +36,8 @@ function App() {
     },
   ]);
   const [viewport, setViewport] = useState<Viewport>(DEFAULT_VIEWPORT);
+  const [activeFunctionId, setActiveFunctionId] = useState<string | null>(firstId);
 
-  // Compile expressions, memoized by the full functions array
   const compiled = useMemo<CompiledFunction[]>(() => {
     const results: CompiledFunction[] = [];
     for (const f of functions) {
@@ -52,7 +54,6 @@ function App() {
     return results;
   }, [functions]);
 
-  // Update errors in function state based on compilation
   const functionsWithErrors = useMemo<PlottedFunction[]>(() => {
     return functions.map((f) => {
       const result = tryCompile(f.expression);
@@ -61,20 +62,23 @@ function App() {
   }, [functions]);
 
   const addFunction = useCallback(() => {
+    const id = makeId();
     setFunctions((prev) => [
       ...prev,
       {
-        id: makeId(),
+        id,
         expression: '',
         color: PALETTE[prev.length % PALETTE.length],
         visible: true,
         error: 'Empty expression',
       },
     ]);
+    setActiveFunctionId(id);
   }, []);
 
   const removeFunction = useCallback((id: string) => {
     setFunctions((prev) => prev.filter((f) => f.id !== id));
+    setActiveFunctionId((cur) => (cur === id ? null : cur));
   }, []);
 
   const updateExpression = useCallback((id: string, expr: string) => {
@@ -95,15 +99,51 @@ function App() {
     );
   }, []);
 
+  const handleKeypadInsert = useCallback((text: string) => {
+    if (!activeFunctionId) return;
+    setFunctions((prev) =>
+      prev.map((f) =>
+        f.id === activeFunctionId
+          ? { ...f, expression: f.expression + text }
+          : f
+      )
+    );
+  }, [activeFunctionId]);
+
+  const handleKeypadClear = useCallback(() => {
+    if (!activeFunctionId) return;
+    setFunctions((prev) =>
+      prev.map((f) =>
+        f.id === activeFunctionId ? { ...f, expression: '' } : f
+      )
+    );
+  }, [activeFunctionId]);
+
+  const handleKeypadBackspace = useCallback(() => {
+    if (!activeFunctionId) return;
+    setFunctions((prev) =>
+      prev.map((f) =>
+        f.id === activeFunctionId
+          ? { ...f, expression: f.expression.slice(0, -1) }
+          : f
+      )
+    );
+  }, [activeFunctionId]);
+
   return (
     <div className="app">
       <Sidebar
         functions={functionsWithErrors}
+        activeFunctionId={activeFunctionId}
         onAdd={addFunction}
         onRemove={removeFunction}
         onUpdateExpression={updateExpression}
         onUpdateColor={updateColor}
         onToggleVisibility={toggleVisibility}
+        onSetActive={setActiveFunctionId}
+        onKeypadInsert={handleKeypadInsert}
+        onKeypadClear={handleKeypadClear}
+        onKeypadBackspace={handleKeypadBackspace}
       />
       <GraphCanvas
         functions={compiled}

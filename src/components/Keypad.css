@@ -1,0 +1,70 @@
+.keypad {
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.keypad-row {
+  display: flex;
+  gap: 6px;
+}
+
+.keypad-key {
+  flex: 1;
+  height: 38px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--bg-btn);
+  color: var(--text-btn);
+  transition: background 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.keypad-key:hover {
+  background: var(--bg-btn-hover);
+}
+
+.keypad-key:active {
+  background: var(--bg-btn-active);
+}
+
+.keypad-key.key--op {
+  background: var(--bg-btn-op);
+  color: var(--text-btn-op);
+  font-weight: 700;
+}
+
+.keypad-key.key--op:hover {
+  background: var(--bg-btn-op-hover);
+}
+
+.keypad-key.key--fn {
+  background: var(--bg-btn-fn);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.keypad-key.key--fn:hover {
+  background: var(--bg-btn-fn-hover);
+}
+
+.keypad-key.key--action {
+  background: var(--border-color);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.keypad-key.key--action:hover {
+  background: var(--bg-btn-hover);
+}

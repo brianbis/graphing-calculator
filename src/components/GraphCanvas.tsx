@@ -1,7 +1,14 @@
 import { useRef, useEffect, useCallback } from 'react';
 import type { Viewport } from '../types';
-import { renderGraph, type CompiledFunction } from '../utils/canvasRenderer';
+import { renderGraph, type CompiledFunction, type CanvasTheme } from '../utils/canvasRenderer';
 import './GraphCanvas.css';
+
+const THEME: CanvasTheme = {
+  bg: '#0a0a1a',
+  grid: '#1a1a3e',
+  axis: '#8888aa',
+  label: '#777799',
+};
 
 interface Props {
   functions: CompiledFunction[];
@@ -15,7 +22,6 @@ export default function GraphCanvas({ functions, viewport, onViewportChange }: P
   const sizeRef = useRef({ width: 0, height: 0 });
   const draggingRef = useRef(false);
   const lastMouseRef = useRef({ x: 0, y: 0 });
-  // Keep latest viewport in a ref so event handlers always see current value
   const viewportRef = useRef(viewport);
   viewportRef.current = viewport;
 
@@ -29,10 +35,9 @@ export default function GraphCanvas({ functions, viewport, onViewportChange }: P
 
     const dpr = window.devicePixelRatio || 1;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    renderGraph(ctx, functions, viewportRef.current, width, height);
+    renderGraph(ctx, functions, viewportRef.current, width, height, THEME);
   }, [functions]);
 
-  // Resize observer
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
@@ -55,12 +60,10 @@ export default function GraphCanvas({ functions, viewport, onViewportChange }: P
     return () => observer.disconnect();
   }, [draw]);
 
-  // Redraw when functions or viewport change
   useEffect(() => {
     draw();
   }, [functions, viewport, draw]);
 
-  // Mouse handlers for pan
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     draggingRef.current = true;
     lastMouseRef.current = { x: e.clientX, y: e.clientY };
@@ -84,7 +87,6 @@ export default function GraphCanvas({ functions, viewport, onViewportChange }: P
     draggingRef.current = false;
   }, []);
 
-  // Wheel handler for zoom — attached manually with { passive: false }
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -95,19 +97,15 @@ export default function GraphCanvas({ functions, viewport, onViewportChange }: P
       const rect = container.getBoundingClientRect();
       const { width, height } = sizeRef.current;
 
-      // Mouse position in screen coords relative to canvas
       const mouseScreenX = e.clientX - rect.left;
       const mouseScreenY = e.clientY - rect.top;
 
-      // Math point under cursor before zoom
       const mathX = vp.centerX + (mouseScreenX - width / 2) / vp.scale;
       const mathY = vp.centerY - (mouseScreenY - height / 2) / vp.scale;
 
-      // Zoom factor
       const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
       const newScale = Math.max(1, Math.min(1e6, vp.scale * zoomFactor));
 
-      // Adjust center so math point under cursor stays fixed
       const newCenterX = mathX - (mouseScreenX - width / 2) / newScale;
       const newCenterY = mathY + (mouseScreenY - height / 2) / newScale;
 

@@ -3,6 +3,11 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.function-row--active {
+  background: var(--bg-hover);
+  border-radius: 6px;
+}
+
 .function-row:last-child {
   border-bottom: none;
 }

@@ -6,10 +6,12 @@ interface Props {
   color: string;
   visible: boolean;
   error: string | null;
+  active: boolean;
   onExpressionChange: (expr: string) => void;
   onColorChange: (color: string) => void;
   onToggleVisible: () => void;
   onDelete: () => void;
+  onFocus: () => void;
 }
 
 export default function FunctionRow({
@@ -17,18 +19,21 @@ export default function FunctionRow({
   color,
   visible,
   error,
+  active,
   onExpressionChange,
   onColorChange,
   onToggleVisible,
   onDelete,
+  onFocus,
 }: Props) {
   return (
-    <div className="function-row">
+    <div className={`function-row ${active ? 'function-row--active' : ''}`}>
       <div className="function-row-controls">
         <ExpressionInput
           value={expression}
           error={error}
           onChange={onExpressionChange}
+          onFocus={onFocus}
         />
         <input
           type="color"
