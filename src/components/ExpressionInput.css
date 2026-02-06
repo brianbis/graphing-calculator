@@ -1,0 +1,39 @@
+.expression-input-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.expression-input {
+  width: 100%;
+  padding: 6px 8px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.expression-input:focus {
+  border-color: var(--accent);
+}
+
+.expression-input--error {
+  border-color: var(--error);
+}
+
+.expression-input--error:focus {
+  border-color: var(--error);
+}
+
+.expression-input-error {
+  font-size: 11px;
+  color: var(--error);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,61 @@
+.function-row {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.function-row:last-child {
+  border-bottom: none;
+}
+
+.function-row-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.function-row-color {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  background: none;
+  flex-shrink: 0;
+}
+
+.function-row-color::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.function-row-color::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+
+.function-row-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
+.function-row-btn:hover {
+  background: var(--bg-hover);
+}
+
+.function-row-btn--off {
+  opacity: 0.4;
+}
+
+.function-row-btn--delete:hover {
+  color: var(--error);
+}

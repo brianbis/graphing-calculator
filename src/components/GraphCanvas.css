@@ -1,0 +1,17 @@
+.graph-canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.graph-canvas-container:active {
+  cursor: grabbing;
+}
+
+.graph-canvas-container canvas {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
